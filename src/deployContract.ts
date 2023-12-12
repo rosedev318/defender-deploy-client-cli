@@ -19,8 +19,14 @@ export interface FunctionArgs {
 export async function deployContract(args: FunctionArgs) {
   console.log('deployContract', args);
 
+  require('dotenv').config();
   const apiKey = process.env.DEFENDER_KEY as string;
   const apiSecret = process.env.DEFENDER_SECRET as string;
+
+  if (apiKey === undefined || apiSecret === undefined) {
+    throw new Error('DEFENDER_KEY and DEFENDER_SECRET must be set in environment variables.');
+  }
+
   const client = new DeployClient({ apiKey, apiSecret });
 
   const buildInfoFileContents = await fs.readFile(args.artifactPayload, 'utf8');
@@ -29,7 +35,7 @@ export async function deployContract(args: FunctionArgs) {
     contractName: args.contractName,
     contractPath: args.contractPath,
     network: args.network,
-    artifactPayload: JSON.stringify(buildInfoFileContents),
+    artifactPayload: buildInfoFileContents,
     licenseType: args.licenseType as SourceCodeLicense | undefined, // TODO cast without validation but catch error from API below
     constructorInputs: undefined, // TODO take an encoded byte string as the constructor inputs
     verifySourceCode: args.verifySourceCode,
