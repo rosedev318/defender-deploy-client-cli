@@ -20,6 +20,8 @@
     "typescript": "^4.0.0"
   },
   "dependencies": {
-    "minimist": "^1.2.8"
+    "minimist": "^1.2.8",
+    "@openzeppelin/defender-sdk-deploy-client": "^1.7.0",
+    "@openzeppelin/defender-sdk-base-client": "^1.7.0"
   }
 }

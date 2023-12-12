@@ -1,13 +1,15 @@
 import minimist from 'minimist';
+import { FunctionArgs, deployContract } from './deployContract';
+import { Network, fromChainId } from '@openzeppelin/defender-sdk-base-client';
 
-const USAGE = 'Usage: npx defender-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --network <NETWORK_NAME> --artifactPayload <BUILD_INFO_FILE_PATH> [--licenseType <LICENSE>] [--constructorInputs <CONSTRUCTOR_ARGS>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
+const USAGE = 'Usage: npx defender-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --network <CHAIN_ID> --artifactPayload <BUILD_INFO_FILE_PATH> [--licenseType <LICENSE>] [--constructorInputs <CONSTRUCTOR_ARGS>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
 const DETAILS = `
 Deploys a contract using OpenZeppelin Defender.
 
 Required options:
   --contractName <CONTRACT_NAME>  Name of the contract to deploy.
   --contractPath <CONTRACT_PATH>  Path to the contract file.
-  --network <NETWORK_NAME>        Name of the network to deploy to.
+  --network <CHAIN_ID>            Chain ID of the network to deploy to.
   --artifactPayload <BUILD_INFO_FILE_PATH>  Path to the build info file containing the contract.
 
 Additional options:
@@ -24,11 +26,9 @@ export async function main(args: string[]): Promise<void> {
 
   if (!help(parsedArgs, extraArgs)) {
     const functionArgs = getFunctionArgs(parsedArgs, extraArgs);
-    const result = {
-      ok: true,
-      errors: [],
-    };
-    process.exitCode = result.ok ? 0 : 1;
+
+    const address = await deployContract(functionArgs);
+    console.log(`Deployed to address ${address}`);
   }
 }
 
@@ -55,19 +55,6 @@ function help(parsedArgs: minimist.ParsedArgs, extraArgs: string[]): boolean {
   }
 }
 
-interface FunctionArgs {
-  contractName: string;
-  contractPath: string;
-  network: string;
-  artifactPayload: string;
-  licenseType?: string;
-  constructorInputs?: string;
-  verifySourceCode?: boolean;
-  relayerId?: string;
-  salt?: string;
-  createFactoryAddress?: string;
-}
-
 /**
  * Gets and validates function arguments and options.
  * @returns Function arguments
@@ -84,7 +71,10 @@ export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: stri
     // Required options
     const contractName = getAndValidateString(parsedArgs, 'contractName', true)!;
     const contractPath = getAndValidateString(parsedArgs, 'contractPath', true)!;
-    const network = getAndValidateString(parsedArgs, 'network', true)!;
+
+    const networkString = getAndValidateString(parsedArgs, 'network', true)!;
+    const network = getNetwork(parseInt(networkString));
+
     const artifactPayload = getAndValidateString(parsedArgs, 'artifactPayload', true)!;
 
     // Additional options
@@ -135,3 +125,10 @@ function checkInvalidArgs(parsedArgs: minimist.ParsedArgs) {
   }
 }
 
+function getNetwork(chainId: number): Network {
+  const network = fromChainId(chainId);
+  if (network === undefined) {
+    throw new Error(`Network ${chainId} is not supported by OpenZeppelin Defender`);
+  }
+  return network;
+}
