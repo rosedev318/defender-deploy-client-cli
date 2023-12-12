@@ -1,0 +1,137 @@
+import minimist from 'minimist';
+
+const USAGE = 'Usage: npx defender-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --network <NETWORK_NAME> --artifactPayload <BUILD_INFO_FILE_PATH> [--licenseType <LICENSE>] [--constructorInputs <CONSTRUCTOR_ARGS>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
+const DETAILS = `
+Deploys a contract using OpenZeppelin Defender.
+
+Required options:
+  --contractName <CONTRACT_NAME>  Name of the contract to deploy.
+  --contractPath <CONTRACT_PATH>  Path to the contract file.
+  --network <NETWORK_NAME>        Name of the network to deploy to.
+  --artifactPayload <BUILD_INFO_FILE_PATH>  Path to the build info file containing the contract.
+
+Additional options:
+  --licenseType <LICENSE>         License type for the contract. Required if verifying source code.
+  --constructorInputs <CONSTRUCTOR_ARGS>   Comma-separated list of constructor arguments to use for deployment. Required if the constructor has arguments.
+  --verifySourceCode <true|false>  Whether to verify source code on block explorers. Defaults to true.
+  --relayerId <RELAYER_ID>        Relayer ID to use for deployment. Defaults to the relayer configured for your deployment environment on Defender.
+  --salt <SALT>                   Salt to use for CREATE2 deployment. Defaults to a random salt.
+  --createFactoryAddress <CREATE_FACTORY_ADDRESS>  Address of the CREATE2 factory to use for deployment. Defaults to the factory provided by Defender.
+`;
+
+export async function main(args: string[]): Promise<void> {
+  const { parsedArgs, extraArgs } = parseArgs(args);
+
+  if (!help(parsedArgs, extraArgs)) {
+    const functionArgs = getFunctionArgs(parsedArgs, extraArgs);
+    const result = {
+      ok: true,
+      errors: [],
+    };
+    process.exitCode = result.ok ? 0 : 1;
+  }
+}
+
+function parseArgs(args: string[]) {
+  const parsedArgs = minimist(args, {
+    boolean: [
+      'help',
+      'verifySourceCode',
+    ],
+    string: ['contractName', 'contractPath', 'network', 'artifactPayload', 'licenseType', 'constructorInputs', 'relayerId', 'salt', 'createFactoryAddress'],
+    alias: { h: 'help' },
+  });
+  const extraArgs = parsedArgs._;
+  return { parsedArgs, extraArgs };
+}
+
+function help(parsedArgs: minimist.ParsedArgs, extraArgs: string[]): boolean {
+  if (extraArgs.length === 0 || parsedArgs['help']) {
+    console.log(USAGE);
+    console.log(DETAILS);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+interface FunctionArgs {
+  contractName: string;
+  contractPath: string;
+  network: string;
+  artifactPayload: string;
+  licenseType?: string;
+  constructorInputs?: string;
+  verifySourceCode?: boolean;
+  relayerId?: string;
+  salt?: string;
+  createFactoryAddress?: string;
+}
+
+/**
+ * Gets and validates function arguments and options.
+ * @returns Function arguments
+ * @throws Error if any arguments or options are invalid.
+ */
+export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: string[]): FunctionArgs {
+  if (extraArgs.length === 0) {
+    throw new Error('Missing command. Supported commands are: validate');
+  } else if (extraArgs[0] !== 'deploy') {
+    throw new Error(`Invalid command: ${extraArgs[0]}. Supported commands are: deploy`);
+  } else if (extraArgs.length > 1) {
+    throw new Error('The deploy command does not take any arguments, only options.');
+  } else {
+    // Required options
+    const contractName = getAndValidateString(parsedArgs, 'contractName', true)!;
+    const contractPath = getAndValidateString(parsedArgs, 'contractPath', true)!;
+    const network = getAndValidateString(parsedArgs, 'network', true)!;
+    const artifactPayload = getAndValidateString(parsedArgs, 'artifactPayload', true)!;
+
+    // Additional options
+    const licenseType = getAndValidateString(parsedArgs, 'licenseType');
+    const constructorInputs = getAndValidateString(parsedArgs, 'constructorInputs');
+    const verifySourceCode = parsedArgs['verifySourceCode'] ?? true;
+    const relayerId = getAndValidateString(parsedArgs, 'relayerId');
+    const salt = getAndValidateString(parsedArgs, 'salt');
+    const createFactoryAddress = getAndValidateString(parsedArgs, 'createFactoryAddress');
+
+    checkInvalidArgs(parsedArgs);
+
+    return { contractName, contractPath, network, artifactPayload, licenseType, constructorInputs, verifySourceCode, relayerId, salt, createFactoryAddress };
+  }
+}
+
+function getAndValidateString(parsedArgs: minimist.ParsedArgs, option: string, required = false): string | undefined {
+  const value = parsedArgs[option];
+  if (value !== undefined && value.trim().length === 0) {
+    throw new Error(`Invalid option: --${option} cannot be empty`);
+  } else if (required && value === undefined) {
+    throw new Error(`Missing required option: --${option}`);
+  }
+  return value;
+}
+
+function checkInvalidArgs(parsedArgs: minimist.ParsedArgs) {
+  const invalidArgs = Object.keys(parsedArgs).filter(
+    key =>
+      ![
+        'help',
+        'h',
+        '_',
+        'contractName',
+        'contractPath',
+        'network',
+        'artifactPayload',
+        'licenseType',
+        'constructorInputs',
+        'verifySourceCode',
+        'relayerId',
+        'salt',
+        'createFactoryAddress',
+      ].includes(key),
+  );
+  if (invalidArgs.length > 0) {
+    throw new Error(`Invalid options: ${invalidArgs.join(', ')}`);
+  }
+}
+
