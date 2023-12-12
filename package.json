@@ -2,7 +2,6 @@
   "name": "defender-cli",
   "version": "0.0.1-alpha.0",
   "description": "CLI for OpenZeppelin Defender SDK",
-  "main": "index.js",
   "author": "Eric Lau <ericglau@outlook.com>",
   "license": "MIT",
   "scripts": {
@@ -11,6 +10,9 @@
     "prepare": "yarn clean && yarn compile",
     "test": "tsc -b && ava",
     "cli": "node ./dist/cli.js"
+  },
+  "bin": {
+    "defender-cli": "./dist/cli.js"
   },
   "devDependencies": {
     "@types/node": "^16.11.7",
