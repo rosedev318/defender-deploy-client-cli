@@ -2,15 +2,15 @@ import minimist from 'minimist';
 import { FunctionArgs, deployContract } from './deployContract';
 import { Network, fromChainId } from '@openzeppelin/defender-sdk-base-client';
 
-const USAGE = 'Usage: npx defender-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --network <CHAIN_ID> --artifactPayload <BUILD_INFO_FILE_PATH> [--licenseType <LICENSE>] [--constructorInputs <CONSTRUCTOR_ARGS>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
+const USAGE = 'Usage: npx defender-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --chainId <CHAIN_ID> --artifactFile <BUILD_INFO_FILE_PATH> [--licenseType <LICENSE>] [--constructorInputs <CONSTRUCTOR_ARGS>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
 const DETAILS = `
 Deploys a contract using OpenZeppelin Defender.
 
 Required options:
   --contractName <CONTRACT_NAME>  Name of the contract to deploy.
   --contractPath <CONTRACT_PATH>  Path to the contract file.
-  --network <CHAIN_ID>            Chain ID of the network to deploy to.
-  --artifactPayload <BUILD_INFO_FILE_PATH>  Path to the build info file containing the contract.
+  --chainId <CHAIN_ID>            Chain ID of the network to deploy to.
+  --artifactFile <BUILD_INFO_FILE_PATH>  Path to the build info file containing Solidity compiler input and output for the contract.
 
 Additional options:
   --licenseType <LICENSE>         License type for the contract. Required if verifying source code.
@@ -28,7 +28,7 @@ export async function main(args: string[]): Promise<void> {
     const functionArgs = getFunctionArgs(parsedArgs, extraArgs);
 
     const address = await deployContract(functionArgs);
-    console.log(`Deployed to address ${address}`);
+    console.log(`Deployed to address: ${address}`);
   }
 }
 
@@ -38,8 +38,9 @@ function parseArgs(args: string[]) {
       'help',
       'verifySourceCode',
     ],
-    string: ['contractName', 'contractPath', 'network', 'artifactPayload', 'licenseType', 'constructorInputs', 'relayerId', 'salt', 'createFactoryAddress'],
+    string: ['contractName', 'contractPath', 'chainId', 'artifactFile', 'licenseType', 'constructorInputs', 'relayerId', 'salt', 'createFactoryAddress'],
     alias: { h: 'help' },
+    default: { verifySourceCode: true },
   });
   const extraArgs = parsedArgs._;
   return { parsedArgs, extraArgs };
@@ -72,22 +73,22 @@ export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: stri
     const contractName = getAndValidateString(parsedArgs, 'contractName', true)!;
     const contractPath = getAndValidateString(parsedArgs, 'contractPath', true)!;
 
-    const networkString = getAndValidateString(parsedArgs, 'network', true)!;
+    const networkString = getAndValidateString(parsedArgs, 'chainId', true)!;
     const network = getNetwork(parseInt(networkString));
 
-    const artifactPayload = getAndValidateString(parsedArgs, 'artifactPayload', true)!;
+    const artifactFile = getAndValidateString(parsedArgs, 'artifactFile', true)!;
 
     // Additional options
     const licenseType = getAndValidateString(parsedArgs, 'licenseType');
     const constructorInputs = getAndValidateString(parsedArgs, 'constructorInputs');
-    const verifySourceCode = parsedArgs['verifySourceCode'] ?? true;
+    const verifySourceCode = parsedArgs['verifySourceCode'];
     const relayerId = getAndValidateString(parsedArgs, 'relayerId');
     const salt = getAndValidateString(parsedArgs, 'salt');
     const createFactoryAddress = getAndValidateString(parsedArgs, 'createFactoryAddress');
 
     checkInvalidArgs(parsedArgs);
 
-    return { contractName, contractPath, network, artifactPayload, licenseType, constructorInputs, verifySourceCode, relayerId, salt, createFactoryAddress };
+    return { contractName, contractPath, network, artifactFile, licenseType, constructorInputs, verifySourceCode, relayerId, salt, createFactoryAddress };
   }
 }
 
@@ -110,8 +111,8 @@ function checkInvalidArgs(parsedArgs: minimist.ParsedArgs) {
         '_',
         'contractName',
         'contractPath',
-        'network',
-        'artifactPayload',
+        'chainId',
+        'artifactFile',
         'licenseType',
         'constructorInputs',
         'verifySourceCode',
