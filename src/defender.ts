@@ -2,7 +2,7 @@ import minimist from 'minimist';
 import { FunctionArgs, deployContract } from './deployContract';
 import { Network, fromChainId } from '@openzeppelin/defender-sdk-base-client';
 
-const USAGE = 'Usage: npx defender-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --chainId <CHAIN_ID> --artifactFile <BUILD_INFO_FILE_PATH> [--licenseType <LICENSE>] [--constructorInputs <CONSTRUCTOR_ARGS>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
+const USAGE = 'Usage: npx @openzeppelin/defender-deploy-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --chainId <CHAIN_ID> --artifactFile <BUILD_INFO_FILE_PATH> [--licenseType <LICENSE>] [--constructorInputs <CONSTRUCTOR_ARGS>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
 const DETAILS = `
 Deploys a contract using OpenZeppelin Defender.
 
