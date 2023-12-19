@@ -14,7 +14,7 @@ Required options:
 
 Additional options:
   --licenseType <LICENSE>         License type for the contract. Required if verifying source code.
-  --constructorBytecode <CONSTRUCTOR_BYTECODE>   NOT SUPPORTED YET. This will be an ABI encoded byte string representing the constructor arguments. Required if the constructor has arguments.
+  --constructorBytecode <CONSTRUCTOR_BYTECODE>  COMING SOON. This will be an ABI encoded byte string representing the constructor arguments. Required if the constructor has arguments.
   --verifySourceCode <true|false>  Whether to verify source code on block explorers. Defaults to true.
   --relayerId <RELAYER_ID>        Relayer ID to use for deployment. Defaults to the relayer configured for your deployment environment on Defender.
   --salt <SALT>                   Salt to use for CREATE2 deployment. Defaults to a random salt.
