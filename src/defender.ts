@@ -14,7 +14,7 @@ Required options:
 
 Additional options:
   --licenseType <LICENSE>         License type for the contract. Required if verifying source code.
-  --constructorInputs <CONSTRUCTOR_ARGS>   Comma-separated list of constructor arguments to use for deployment. Required if the constructor has arguments.
+  --constructorBytecode <CONSTRUCTOR_BYTECODE>   NOT SUPPORTED YET. This will be an ABI encoded byte string representing the constructor arguments. Required if the constructor has arguments.
   --verifySourceCode <true|false>  Whether to verify source code on block explorers. Defaults to true.
   --relayerId <RELAYER_ID>        Relayer ID to use for deployment. Defaults to the relayer configured for your deployment environment on Defender.
   --salt <SALT>                   Salt to use for CREATE2 deployment. Defaults to a random salt.
@@ -38,7 +38,7 @@ function parseArgs(args: string[]) {
       'help',
       'verifySourceCode',
     ],
-    string: ['contractName', 'contractPath', 'chainId', 'artifactFile', 'licenseType', 'constructorInputs', 'relayerId', 'salt', 'createFactoryAddress'],
+    string: ['contractName', 'contractPath', 'chainId', 'artifactFile', 'licenseType', 'constructorBytecode', 'relayerId', 'salt', 'createFactoryAddress'],
     alias: { h: 'help' },
     default: { verifySourceCode: true },
   });
@@ -80,7 +80,7 @@ export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: stri
 
     // Additional options
     const licenseType = getAndValidateString(parsedArgs, 'licenseType');
-    const constructorInputs = getAndValidateString(parsedArgs, 'constructorInputs');
+    const constructorBytecode = parsedArgs['constructorBytecode'];
     const verifySourceCode = parsedArgs['verifySourceCode'];
     const relayerId = getAndValidateString(parsedArgs, 'relayerId');
     const salt = getAndValidateString(parsedArgs, 'salt');
@@ -88,7 +88,7 @@ export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: stri
 
     checkInvalidArgs(parsedArgs);
 
-    return { contractName, contractPath, network, artifactFile, licenseType, constructorInputs, verifySourceCode, relayerId, salt, createFactoryAddress };
+    return { contractName, contractPath, network, artifactFile, licenseType, constructorBytecode, verifySourceCode, relayerId, salt, createFactoryAddress };
   }
 }
 
@@ -114,7 +114,7 @@ function checkInvalidArgs(parsedArgs: minimist.ParsedArgs) {
         'chainId',
         'artifactFile',
         'licenseType',
-        'constructorInputs',
+        'constructorBytecode',
         'verifySourceCode',
         'relayerId',
         'salt',

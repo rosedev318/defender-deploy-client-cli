@@ -9,7 +9,7 @@ export interface FunctionArgs {
   network: Network;
   artifactFile: string;
   licenseType?: string;
-  constructorInputs?: string;
+  constructorBytecode?: string;
   verifySourceCode: boolean;
   relayerId?: string;
   salt?: string;
@@ -35,7 +35,7 @@ export async function deployContract(args: FunctionArgs) {
     network: args.network,
     artifactPayload: buildInfoFileContents,
     licenseType: args.licenseType as SourceCodeLicense | undefined, // cast without validation but catch error from API below
-    constructorInputs: undefined, // TODO take an encoded byte string as the constructor inputs
+    // constructorBytecode: args.constructorBytecode, // TODO enable this when Defender SDK supports it
     verifySourceCode: args.verifySourceCode,
     relayerId: args.relayerId,
     salt: args.salt,
