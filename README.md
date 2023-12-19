@@ -3,7 +3,7 @@
 CLI for deployments using OpenZeppelin Defender SDK.
 
 > **Warning**
-> This repository contains experimental code. It is available as a technology preview and its functionality is subject to change. Breaking changes may be introduced at any point while it is in preview.
+> This repository contains experimental code. It is available as a technology preview and its functionality is incomplete and subject to change. Breaking changes may be introduced at any point while it is in preview.
 
 ## Prerequisites
 
