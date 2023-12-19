@@ -1,5 +1,5 @@
 {
-  "name": "@openzeppelin/defender-deploy-cli",
+  "name": "@openzeppelin/defender-deploy-client-cli",
   "version": "0.0.1-alpha.0",
   "description": "CLI for deployments using OpenZeppelin Defender SDK",
   "license": "MIT",
@@ -11,7 +11,7 @@
     "cli": "node ./dist/cli.js"
   },
   "bin": {
-    "defender-deploy-cli": "./dist/cli.js"
+    "defender-deploy-client-cli": "./dist/cli.js"
   },
   "devDependencies": {
     "@types/node": "^16.11.7",
