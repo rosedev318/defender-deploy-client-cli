@@ -1,5 +1,7 @@
 # @openzeppelin/defender-deploy-client-cli
 
+[![NPM Package](https://img.shields.io/npm/v/@openzeppelin/defender-deploy-client-cli?color=%234e5de4&label=npm)](https://www.npmjs.com/package/@openzeppelin/defender-deploy-client-cli)
+
 CLI for deployments using OpenZeppelin Defender SDK.
 
 > **Warning**
