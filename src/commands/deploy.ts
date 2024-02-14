@@ -1,10 +1,10 @@
 import minimist from 'minimist';
 import { FunctionArgs, deployContract } from '../internal/deploy-contract';
 import { getDeployClient } from '../internal/client';
-import { getAndValidateString, getNetwork } from '../internal/utils';
+import { USAGE_COMMAND_PREFIX, getAndValidateString, getNetwork } from '../internal/utils';
 import { DeployClient } from '@openzeppelin/defender-sdk-deploy-client';
 
-const USAGE = 'Usage: npx @openzeppelin/defender-deploy-client-cli deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --chainId <CHAIN_ID> --artifactFile <BUILD_INFO_FILE_PATH> [--constructorBytecode <CONSTRUCTOR_ARGS>] [--licenseType <LICENSE>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]';
+const USAGE = `${USAGE_COMMAND_PREFIX} deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --chainId <CHAIN_ID> --buildInfoFile <BUILD_INFO_FILE_PATH> [--constructorBytecode <CONSTRUCTOR_ARGS>] [--licenseType <LICENSE>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]`;
 const DETAILS = `
 Deploys a contract using OpenZeppelin Defender.
 
@@ -12,7 +12,7 @@ Required options:
   --contractName <CONTRACT_NAME>  Name of the contract to deploy.
   --contractPath <CONTRACT_PATH>  Path to the contract file.
   --chainId <CHAIN_ID>            Chain ID of the network to deploy to.
-  --artifactFile <BUILD_INFO_FILE_PATH>  Path to the build info file containing Solidity compiler input and output for the contract.
+  --buildInfoFile <BUILD_INFO_FILE_PATH>  Path to the build info file containing Solidity compiler input and output for the contract.
 
 Additional options:
   --constructorBytecode <CONSTRUCTOR_BYTECODE>  0x-prefixed ABI encoded byte string representing the constructor arguments. Required if the constructor has arguments.
@@ -26,7 +26,7 @@ Additional options:
 export async function deploy(args: string[], deployClient?: DeployClient): Promise<void> {
   const { parsedArgs, extraArgs } = parseArgs(args);
 
-  if (!help(parsedArgs, extraArgs)) {
+  if (!help(parsedArgs)) {
     const functionArgs = getFunctionArgs(parsedArgs, extraArgs);
     const client = deployClient ?? getDeployClient();
     const address = await deployContract(functionArgs, client);
@@ -41,7 +41,7 @@ function parseArgs(args: string[]) {
       'help',
       'verifySourceCode',
     ],
-    string: ['contractName', 'contractPath', 'chainId', 'artifactFile', 'licenseType', 'constructorBytecode', 'relayerId', 'salt', 'createFactoryAddress'],
+    string: ['contractName', 'contractPath', 'chainId', 'buildInfoFile', 'licenseType', 'constructorBytecode', 'relayerId', 'salt', 'createFactoryAddress'],
     alias: { h: 'help' },
     default: { verifySourceCode: true },
   });
@@ -49,13 +49,13 @@ function parseArgs(args: string[]) {
   return { parsedArgs, extraArgs };
 }
 
-function help(parsedArgs: minimist.ParsedArgs, extraArgs: string[]): boolean {
-  if (parsedArgs['help']) {
+function help(parsedArgs: minimist.ParsedArgs): boolean {
+  if (!parsedArgs['help']) {
+    return false;
+  } else {
     console.log(USAGE);
     console.log(DETAILS);
     return true;
-  } else {
-    return false;
   }
 }
 
@@ -64,7 +64,7 @@ function help(parsedArgs: minimist.ParsedArgs, extraArgs: string[]): boolean {
  * @returns Function arguments
  * @throws Error if any arguments or options are invalid.
  */
-export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: string[]): FunctionArgs {
+function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: string[]): FunctionArgs {
   if (extraArgs.length !== 0) {
     throw new Error('The deploy command does not take any arguments, only options.');
   } else {
@@ -75,7 +75,7 @@ export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: stri
     const networkString = getAndValidateString(parsedArgs, 'chainId', true)!;
     const network = getNetwork(parseInt(networkString));
 
-    const artifactFile = getAndValidateString(parsedArgs, 'artifactFile', true)!;
+    const buildInfoFile = getAndValidateString(parsedArgs, 'buildInfoFile', true)!;
 
     // Additional options
     const licenseType = getAndValidateString(parsedArgs, 'licenseType');
@@ -87,7 +87,7 @@ export function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: stri
 
     checkInvalidArgs(parsedArgs);
 
-    return { contractName, contractPath, network, artifactFile, licenseType, constructorBytecode, verifySourceCode, relayerId, salt, createFactoryAddress };
+    return { contractName, contractPath, network, buildInfoFile, licenseType, constructorBytecode, verifySourceCode, relayerId, salt, createFactoryAddress };
   }
 }
 
@@ -101,7 +101,7 @@ function checkInvalidArgs(parsedArgs: minimist.ParsedArgs) {
         'contractName',
         'contractPath',
         'chainId',
-        'artifactFile',
+        'buildInfoFile',
         'licenseType',
         'constructorBytecode',
         'verifySourceCode',
