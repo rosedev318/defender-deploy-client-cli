@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.0.1-alpha.5 (2024-03-11)
+
+- Support private networks and forked networks. ([#7](https://github.com/OpenZeppelin/defender-deploy-client-cli/pull/7))
+
 ## 0.0.1-alpha.4 (2024-02-14)
 
 - Add commands to get approval process information. ([#4](https://github.com/OpenZeppelin/defender-deploy-client-cli/pull/4))
