@@ -1,6 +1,6 @@
 {
   "name": "@openzeppelin/defender-deploy-client-cli",
-  "version": "0.0.1-alpha.7",
+  "version": "0.0.1-alpha.8",
   "description": "CLI for deployments using OpenZeppelin Defender SDK",
   "repository": "https://github.com/OpenZeppelin/defender-deploy-client-cli",
   "license": "MIT",
@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "minimist": "^1.2.8",
-    "@openzeppelin/defender-sdk-deploy-client": "^1.10.0",
-    "@openzeppelin/defender-sdk-base-client": "^1.10.0",
-    "@openzeppelin/defender-sdk-network-client": "^1.10.0",
+    "@openzeppelin/defender-sdk-deploy-client": "^1.14.4",
+    "@openzeppelin/defender-sdk-base-client": "^1.14.4",
+    "@openzeppelin/defender-sdk-network-client": "^1.14.4",
     "dotenv": "^16.3.1"
   }
 }

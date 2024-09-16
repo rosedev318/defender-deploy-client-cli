@@ -2,10 +2,10 @@ import minimist from 'minimist';
 import { FunctionArgs, deployContract } from '../internal/deploy-contract';
 import { getDeployClient } from '../internal/client';
 import { USAGE_COMMAND_PREFIX, getAndValidateString, getNetwork } from '../internal/utils';
-import { DeployClient, TxOverrides } from '@openzeppelin/defender-sdk-deploy-client';
+import { DeployClient, DeployMetadata, TxOverrides } from '@openzeppelin/defender-sdk-deploy-client';
 import { NetworkClient } from '@openzeppelin/defender-sdk-network-client';
 
-const USAGE = `${USAGE_COMMAND_PREFIX} deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --chainId <CHAIN_ID> --buildInfoFile <BUILD_INFO_FILE_PATH> [--constructorBytecode <CONSTRUCTOR_ARGS>] [--licenseType <LICENSE>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>]`;
+const USAGE = `${USAGE_COMMAND_PREFIX} deploy --contractName <CONTRACT_NAME> --contractPath <CONTRACT_PATH> --chainId <CHAIN_ID> --buildInfoFile <BUILD_INFO_FILE_PATH> [--constructorBytecode <CONSTRUCTOR_ARGS>] [--licenseType <LICENSE>] [--verifySourceCode <true|false>] [--relayerId <RELAYER_ID>] [--salt <SALT>] [--createFactoryAddress <CREATE_FACTORY_ADDRESS>] [--gasLimit <GAS_LIMIT>] [--gasPrice <GAS_PRICE>] [--maxFeePerGas <MAX_FEE_PER_GAS>] [--maxPriorityFeePerGas <MAX_PRIORITY_FEE_PER_GAS>] [--metadata <METADATA>]`;
 const DETAILS = `
 Deploys a contract using OpenZeppelin Defender.
 
@@ -17,15 +17,16 @@ Required options:
 
 Additional options:
   --constructorBytecode <CONSTRUCTOR_BYTECODE>  0x-prefixed ABI encoded byte string representing the constructor arguments. Required if the constructor has arguments.
-  --licenseType "<LICENSE>"         License type to display on block explorers for verified source code. See https://etherscan.io/contract-license-types for supported values and use the string found in brackets, e.g. "MIT"
+  --licenseType '<LICENSE>'       License type to display on block explorers for verified source code. See https://etherscan.io/contract-license-types for supported values and use the string found in brackets, e.g. 'MIT'
   --verifySourceCode <true|false>  Whether to verify source code on block explorers. Defaults to true.
   --relayerId <RELAYER_ID>        Relayer ID to use for deployment. Defaults to the relayer configured for your deployment environment on Defender.
   --salt <SALT>                   Salt to use for CREATE2 deployment. Defaults to a random salt.
   --createFactoryAddress <CREATE_FACTORY_ADDRESS>  Address of the CREATE2 factory to use for deployment. Defaults to the factory provided by Defender.
-  --gasLimit <GAS_LIMIT>           Maximum amount of gas to allow the deployment transaction to use.
-  --gasPrice <GAS_PRICE>           Gas price for legacy transactions, in wei.
+  --gasLimit <GAS_LIMIT>          Maximum amount of gas to allow the deployment transaction to use.
+  --gasPrice <GAS_PRICE>          Gas price for legacy transactions, in wei.
   --maxFeePerGas <MAX_FEE_PER_GAS>  Maximum total fee per gas, in wei.
   --maxPriorityFeePerGas <MAX_PRIORITY_FEE_PER_GAS>  Maximum priority fee per gas, in wei.
+  --metadata '<METADATA>'         Use this to identify, tag, or classify deployments. See https://docs.openzeppelin.com/defender/module/deploy#metadata. Must be a JSON string, for example: --metadata '{ "commitHash": "4ae3e0d", "tag": "v1.0.0", "anyOtherField": "anyValue" }'
 `;
 
 export async function deploy(args: string[], deployClient?: DeployClient, networkClient?: NetworkClient): Promise<void> {
@@ -46,7 +47,7 @@ function parseArgs(args: string[]) {
       'help',
       'verifySourceCode',
     ],
-    string: ['contractName', 'contractPath', 'chainId', 'buildInfoFile', 'licenseType', 'constructorBytecode', 'relayerId', 'salt', 'createFactoryAddress', 'gasLimit', 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas'],
+    string: ['contractName', 'contractPath', 'chainId', 'buildInfoFile', 'licenseType', 'constructorBytecode', 'relayerId', 'salt', 'createFactoryAddress', 'gasLimit', 'gasPrice', 'maxFeePerGas', 'maxPriorityFeePerGas', 'metadata'],
 
     alias: { h: 'help' },
     default: { verifySourceCode: true },
@@ -98,9 +99,11 @@ async function getFunctionArgs(parsedArgs: minimist.ParsedArgs, extraArgs: strin
       maxPriorityFeePerGas: parseHexOrUndefined(getAndValidateString(parsedArgs, 'maxPriorityFeePerGas')),
     };
 
+    const metadata = getAndValidateJsonString(parsedArgs, 'metadata');
+
     checkInvalidArgs(parsedArgs);
 
-    return { contractName, contractPath, network, buildInfoFile, licenseType, constructorBytecode, verifySourceCode, relayerId, salt, createFactoryAddress, txOverrides };
+    return { contractName, contractPath, network, buildInfoFile, licenseType, constructorBytecode, verifySourceCode, relayerId, salt, createFactoryAddress, txOverrides, metadata };
   }
 }
 
@@ -125,6 +128,7 @@ function checkInvalidArgs(parsedArgs: minimist.ParsedArgs) {
         'gasPrice',
         'maxFeePerGas',
         'maxPriorityFeePerGas',
+        'metadata',
       ].includes(key),
   );
   if (invalidArgs.length > 0) {
@@ -148,6 +152,19 @@ function parseHexOrUndefined(value?: string): string | undefined {
 function parseNumberOrUndefined(value?: string): number | undefined {
   if (value !== undefined) {
     return Number(value);
+  } else {
+    return undefined;
+  }
+}
+
+function getAndValidateJsonString(parsedArgs: minimist.ParsedArgs, option: string): DeployMetadata | undefined {
+  const value = getAndValidateString(parsedArgs, option);
+  if (value !== undefined) {
+    try {
+      return JSON.parse(value);
+    } catch (e: any) {
+      throw new Error(`Failed to parse ${option} option as JSON: ${e.message}`);
+    }
   } else {
     return undefined;
   }

@@ -1,8 +1,12 @@
 # Changelog
 
+## 0.0.1-alpha.8 (2024-09-16)
+
+- Add `--metadata` option. ([#13](https://github.com/OpenZeppelin/defender-deploy-client-cli/pull/13))
+
 ## 0.0.1-alpha.7 (2024-05-02)
 
-- Add options to enable overriding deployment transaction parameters.
+- Add options to enable overriding deployment transaction parameters. ([#10](https://github.com/OpenZeppelin/defender-deploy-client-cli/pull/10))
 
 ## 0.0.1-alpha.6 (2024-04-16)
 
